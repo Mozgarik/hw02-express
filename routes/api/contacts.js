@@ -13,6 +13,16 @@ const contactAddSchema = Joi.object({
   phone: Joi.string().required().messages({
     "any.required": `phone required field`
   }),
+<<<<<<< Updated upstream
+=======
+  
+  phone: Joi.string().pattern(/^[0-9]+$/, 'numbers').messages({ "string.pattern.name": `phone must be a number` })
+  .min(0)
+  .max(1000000000000000).messages({ "number.unsafe": 'phone must be a correct number' })
+  .required().messages({
+    "any.required": `missing required phone field`
+  })
+>>>>>>> Stashed changes
 })
 
 const router = express.Router()
@@ -33,7 +43,7 @@ router.get('/:contactId', async (req, res, next) => {
   try {
     const result = await contactService.getContactById(req.params.contactId)
     if(!result){
-      throw HttpError(404, `contact with id: ${req.params.contactId} not found`)
+      throw HttpError(404, `not found`)
     }
       res.json(result)
   } catch (error) {
@@ -85,9 +95,10 @@ router.put('/:contactId', async (req, res, next) => {
     if(!validateContact.error) {
       const id = req.params.contactId
       const result = await contactService.updateContactById(id, req.body)
+      console.log(result)
       if(result === null) {
-        res.status(404).json({
-          message: 'Not Found'
+        res.status(400).json({
+          message: 'missing fields'
         })
       }else {
         res.status(200).json(result)
