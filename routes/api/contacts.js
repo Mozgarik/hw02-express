@@ -16,14 +16,16 @@ const contactAddSchema = Joi.object({
         .required().messages({
     "any.required": `missing required email field`
   }),
+  phone: Joi.string().required().messages({
+    "any.required": `phone required field`
+  }),
   
-  phone: Joi.number().messages({ "number.base": `phone must be a number` })
-  .integer()  
-  .min(0)
-  .max(1000000000000000).messages({ "number.unsafe": 'phone must be a correct number' })
+  phone: Joi.string().pattern(/^[0-9]+$/, 'numbers').messages({ "string.pattern.name": `phone must be a number` })
   .required().messages({
     "any.required": `missing required phone field`
   })
+  .min(0)
+  .max(1000000000000000).messages({ "number.unsafe": 'phone must be a correct number' })
 })
 
 const router = express.Router()
@@ -31,6 +33,7 @@ const router = express.Router()
 router.get('/', async (req, res, next) => {
   try {
     const result = await contactService.listContacts()
+    console.log(result)
   res.json(result)
   } catch (error) {
     res.status(500).json({
@@ -41,10 +44,12 @@ router.get('/', async (req, res, next) => {
 })
 
 router.get('/:contactId', async (req, res, next) => {
+  const result = await contactService.getContactById(req.params.contactId)
+  console.log(result)
   try {
     const result = await contactService.getContactById(req.params.contactId)
     if(!result){
-      throw HttpError(404, `contact with id: ${req.params.contactId} not found`)
+      throw HttpError(404, `not found`)
     }
       res.json(result)
   } catch (error) {
@@ -93,21 +98,21 @@ try {
 
 router.put('/:contactId', async (req, res, next) => {
   try {
-    const validateContact = contactAddSchema.validate(req.body)
+    if (Object.keys(req.body).length !== 0) {
+      const validateContact = contactAddSchema.validate(req.body)
     if(!validateContact.error) {
       const id = req.params.contactId
       const result = await contactService.updateContactById(id, req.body)
-      if(result === null) {
-        res.status(404).json({
-          message: 'Not Found'
-        })
-      }else {
-        res.status(200).json(result)
-      }
+      res.status(200).json(result)
     } else {
          res.status(400).json({
           message: validateContact.error.message
          })
+    }
+    }else {
+      res.status(400).json({
+        message: 'missing fields'
+      })
     }
 } catch (error) {
   next(error)
