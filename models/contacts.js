@@ -1,6 +1,5 @@
 import fs from 'fs/promises'
 import path from 'path'
-import crypto from 'node:crypto'
 import { nanoid } from 'nanoid'
 
 
@@ -21,7 +20,7 @@ const listContacts = async () => {
 }
 
 const getContactById = async contactId => {
-   data = await read()
+  const data = await read()
   return data.find((book) => book.id === contactId) 
 }
 
