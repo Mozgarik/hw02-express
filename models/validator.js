@@ -14,14 +14,16 @@ export const contactAddSchema = Joi.object({
        "any.required": `missing required email field`
      }),
      
-     phone: Joi
-     .string() 
+     phone: Joi.string() 
      .required().messages({
        "any.required": `missing required phone field`
      })
-     .pattern(new RegExp('^[0-9]{3,30}$')).messages({ 
-        "string.pattern.base": `incorrect phone number`
-     }),
+     .pattern(new RegExp('^[+()0-9 ]{3,30}$')).messages({ 
+          "string.pattern.base": `The phone number cannot contain letters. Example of a correct number: +(380)000000000`
+      }),
+      favorite: Joi.boolean().messages({
+        "boolean.base": `field favorite must be a boolean`
+      })
    })
    
    export const contactFavoriteUpdate = Joi.object({
