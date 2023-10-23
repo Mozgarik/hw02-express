@@ -15,7 +15,7 @@ usersRouter.get('/current', userRouter.currentUser)
 
 usersRouter.post('/logout', userRouter.userLogout)
 
-usersRouter.patch('/avatar', upload.single('avatarUrl'), userRouter.avatarPut) 
+usersRouter.patch('/avatars', upload.single('avatar'), userRouter.avatarPut) 
 
 
 export default usersRouter

@@ -173,7 +173,6 @@ try {
     const newAvatar = await Jimp.read(oldPath);
     await newAvatar.resize(250, 250).writeAsync(newPath);
     
-    // fs.rename(oldPath, newPath)
     const avatar = path.join("public", "avatars", filename)
 
      req.user = user
