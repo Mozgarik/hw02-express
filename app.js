@@ -2,16 +2,12 @@ import express from "express"
 import logger from 'morgan'
 import cors from 'cors'
 
-<<<<<<< Updated upstream
-import contactsRouter from "./routes/api/contacts.js"
-=======
 
 import "dotenv/config"
 
 import usersRouter from "./routes/api/users-router.js"
 
 import contactsRouter from "./routes/api/contact-router.js"
->>>>>>> Stashed changes
 
 
 const app = express()
@@ -24,10 +20,7 @@ app.use(express.json())
 app.use(express.static("public"))
 
 
-<<<<<<< Updated upstream
-=======
 app.use('/api/users', usersRouter)
->>>>>>> Stashed changes
 app.use('/api/contacts', contactsRouter)
 
 app.use((req, res) => {
