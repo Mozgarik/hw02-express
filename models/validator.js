@@ -33,6 +33,9 @@ export const contactAddSchema = Joi.object({
      .required()
    })
 
+   export const userEmailSchema = Joi.object({
+    email: Joi.string().required()
+   })
 
    export const userSignUpSchema = Joi.object({
     email: Joi.string().required().messages({

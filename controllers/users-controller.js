@@ -4,11 +4,11 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken";
 import path from 'path';
 import gravatar from "gravatar"
-import fs from "fs/promises"
 import Jimp from "jimp";
+import sendEmail from "../helpers/sendEmail.js";
+import { nanoid } from "nanoid";
 
-
-const {JWT_SECRET} = process.env
+const {JWT_SECRET, BASE_URL} = process.env
 const avatarsPath = path.resolve("public", "avatars")
 
 
@@ -16,7 +16,7 @@ const userReg = async (req, res, next) => {
   const {email, password} = req.body
   const user = await User.findOne({email})
   const hashPassword = await bcrypt.hash(password, 10)
-
+  const verificationCode = nanoid()
   const avatarUrl = gravatar.url(`${email}`, {s: '100', r: 'x', d: 'retro'}, true)
 
   try { 
@@ -27,7 +27,16 @@ const userReg = async (req, res, next) => {
       "message": `${email} already in use`
     })
      }else {
-      const newUser = await User.create({...req.body, avatarUrl, password: hashPassword})
+      const newUser = await User.create({...req.body, avatarUrl, password: hashPassword, verificationCode})
+
+      const verifyEmail = {
+        to: email,
+        subject: "Verify Email",
+        html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationCode}">Click to verify email</a>`
+      }
+
+      await sendEmail(verifyEmail)
+
       res.status(201).json({
         "user": {
           email: newUser.email,
@@ -46,6 +55,54 @@ const userReg = async (req, res, next) => {
   }
 
 
+const verify = async(req, res) => {
+  const {verificationCode} = req.params;
+  const user = await User.findOne({verificationCode})
+  if(!user) {
+    res.status(404)
+  }else {
+    await User.findByIdAndUpdate(user._id, {verify: true, verificationCode: ""})
+    res.status(200).json({
+      "message": "Verify seuccess"
+    })
+  }
+}
+
+const resendVerifyEmail = async(req, res) => {
+  try{
+    const {email} = req.body 
+    const user = await User.findOne({email})
+    console.log(user.verificationCode)
+    if(!user) {
+      res.status(404).json({
+        "message": "Email not found"
+      })
+    }else{
+      if (user.verify) {
+        res.status(400).json({
+          "message": "Email alread verify"
+        })
+      }else {
+        
+        const verifyEmail = {
+          to: email,
+          subject: "Verify Email",
+          html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationCode}">Click to verify email</a>`
+        }
+  
+        await sendEmail(verifyEmail)
+
+        res.json({
+          "message": "Verify email send"
+        })
+
+      }
+  }
+    }catch(error) {
+      console.log(error)
+    }
+}
+
 const userLog =  async (req, res, next) => {
   const {email, password} = req.body
   const user = await User.findOne({email})
@@ -55,6 +112,12 @@ const userLog =  async (req, res, next) => {
       "message": "Email or password invalid"
     })
   }else { 
+    if (user.verify === false) {
+      res.status(401).json({
+        "message": "Email not verify"
+      }
+      )
+    }
       const validateUser = userSignInSchema.validate(req.body)
     if(!validateUser.error) {
       const passwordCompare = await bcrypt.compare(password, user.password)
@@ -195,5 +258,7 @@ export default {
   userLog,
   currentUser,
   userLogout,
-  avatarPut
+  avatarPut,
+  verify,
+  resendVerifyEmail,
 }
